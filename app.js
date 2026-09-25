@@ -74,9 +74,9 @@
     el._raf = requestAnimationFrame(schritt);
   }
 
-  // ---------- Muenzen: 100 Stueck = 100 EUR im Vertrag ----------
+  // ---------- Kreisdiagramm: Anteile an 100 EUR im Vertrag ----------
   // Erst Eigenanteil vs. Staat nach gerundeter Quote, dann Staatsanteil per groesstem Rest aufteilen,
-  // damit die Muenzen exakt zur Hero-Zahl passen.
+  // damit der Kreis exakt zur Hero-Zahl passen.
   function muenzenVerteilen(r) {
     if (!r.gesamtbeitrag) return { eigen: 0, grund: 0, kind: 0, steuer: 0 };
     const staat = Math.round(r.quote * 100);
@@ -88,13 +88,12 @@
     return { eigen: 100 - staat, ...n };
   }
 
-  function muenzen(el, r) {
-    if (!el.children.length) {
-      el.innerHTML = Array.from({ length: 100 }, (_, i) => `<i style="--i:${i}" data-seg="leer"></i>`).join('');
-    }
+  function kreis(el, r) {
     const n = muenzenVerteilen(r);
-    const folge = ['eigen', 'grund', 'kind', 'steuer'].flatMap((k) => Array(n[k]).fill(k));
-    [...el.children].forEach((c, i) => { c.dataset.seg = folge[i] || 'leer'; });
+    let bis = 0;
+    const stopps = ['eigen', 'grund', 'kind', 'steuer']
+      .map((k) => `var(--c-${k}) ${bis}% ${(bis += n[k])}%`);
+    el.style.setProperty('--kreis', r.gesamtbeitrag ? `conic-gradient(${stopps.join(', ')})` : '');
     el.setAttribute('aria-label', r.gesamtbeitrag
       ? `Von 100 € im Vertrag: ${n.eigen} € Eigenanteil, ${n.grund} € Grundzulage, ${n.kind} € Kinderzulage, ${n.steuer} € Steuervorteil`
       : 'Noch kein Beitrag');
@@ -158,7 +157,7 @@
       <p class="unterzeile">${unterzeile}</p>
       <p class="p-quote"><span data-f="quote"></span><small>Förderquote</small></p>
       <div class="p-inhalt">
-        <div class="muenzen" role="img"></div>
+        <div class="kreis" role="img"></div>
         <dl>
           <div><dt>Eigenbeitrag</dt><dd data-f="E"></dd></div>
           <div><dt>Zulagen</dt><dd data-f="zulagen"></dd></div>
@@ -183,7 +182,7 @@
     if (!r.foerderberechtigt) return;
     zaehlen(el.querySelector('[data-f="quote"]'), r.quote, pct);
     el.querySelectorAll('dd[data-f]').forEach((dd) => zaehlen(dd, r[dd.dataset.f], eur));
-    muenzen(el.querySelector('.muenzen'), r);
+    kreis(el.querySelector('.kreis'), r);
   }
 
   // ---------- Hinweise ----------
@@ -230,8 +229,8 @@
       ? 'Stell einen Beitrag ein, um deine Förderung zu sehen.'
       : `Von 100 € in deinem Depot zahlt der Staat <b>${quoteGanz} €</b>.`;
 
-    // Muenzen + Legende
-    muenzen($('muenzen'), a);
+    // Kreis + Legende
+    kreis($('kreis'), a);
     const legende = { eigen: Math.max(0, a.nettoEigenanteil), grund: a.grundzulage, kind: a.kinderzulage, steuer: a.steuervorteil };
     for (const [k, v] of Object.entries(legende)) {
       zaehlen($(`l-${k}`), v, eur);

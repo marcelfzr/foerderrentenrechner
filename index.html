@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Förderrenten-Rechner</title>
+  <meta name="description" content="Lohnt sich das geförderte Altersvorsorgedepot ab 2027? Förderquote, Zulagen, Steuervorteil und Eigenanteil – optional im Vergleich mit Riester.">
+  <link rel="stylesheet" href="style.css">
+  <script src="calc.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#ergebnis">Zum Ergebnis springen</a>
+
+  <header class="kopf">
+    <p class="kicker">Altersvorsorgedepot <span aria-hidden="true">·</span> Förderung ab 2027</p>
+    <h1>Was legt der Staat <em>dazu?</em></h1>
+    <p class="lead">Rechne aus, wie viel von deinem Altersvorsorgedepot Zulagen und Steuervorteil tragen – und ob es gegen Riester gewinnt.</p>
+  </header>
+
+  <main>
+    <div class="raster">
+      <div class="spalte-links">
+        <form class="eingaben" id="form" novalidate>
+          <h2 class="abschnitt"><span class="nr">01</span> Deine Angaben</h2>
+
+          <div class="feld-paar">
+            <div class="feld">
+              <label for="geburtsjahr">Geburtsjahr</label>
+              <input id="geburtsjahr" type="number" inputmode="numeric" min="1940" max="2010" step="1" value="1990" aria-describedby="geburtsjahr-fehler">
+              <p class="fehler" id="geburtsjahr-fehler" aria-live="polite"></p>
+            </div>
+            <div class="feld">
+              <label for="kinder">Kinder mit Kindergeld</label>
+              <input id="kinder" type="number" inputmode="numeric" min="0" max="10" step="1" value="0" aria-describedby="kinder-fehler">
+              <p class="fehler" id="kinder-fehler" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="feld">
+            <label for="brutto" id="brutto-label">Monatliches Bruttogehalt</label>
+            <div class="eingabe-einheit">
+              <input id="brutto" type="number" inputmode="decimal" min="0" step="50" value="4000" aria-describedby="brutto-fehler">
+              <span aria-hidden="true">€</span>
+            </div>
+            <p class="fehler" id="brutto-fehler" aria-live="polite"></p>
+          </div>
+
+          <div class="feld feld-beitrag">
+            <label for="beitrag">Monatlicher Eigenbeitrag</label>
+            <div class="beitrag-zeile">
+              <input id="beitragSlider" type="range" min="0" max="570" step="5" value="150" aria-label="Monatlicher Eigenbeitrag (Schieberegler)">
+              <div class="eingabe-einheit schmal">
+                <input id="beitrag" type="number" inputmode="decimal" min="0" max="570" step="1" value="150" aria-describedby="beitrag-hilfe beitrag-fehler">
+                <span aria-hidden="true">€</span>
+              </div>
+            </div>
+            <p class="hilfe" id="beitrag-hilfe">Bis 570 € im Monat (6.840 € im Jahr) darfst du einzahlen.</p>
+            <p class="fehler" id="beitrag-fehler" aria-live="polite"></p>
+          </div>
+
+          <div class="feld schalter-feld">
+            <label class="schalter" for="riester">
+              <input id="riester" type="checkbox" role="switch">
+              <span class="schiene" aria-hidden="true"></span>
+              <span>Mit Riester vergleichen <small>alte Regeln, Bestandsvertrag</small></span>
+            </label>
+          </div>
+
+          <div class="feld" id="vor2008-feld" hidden>
+            <label for="kinderVor2008">Davon Kinder vor 2008 geboren</label>
+            <input id="kinderVor2008" type="number" inputmode="numeric" min="0" max="0" step="1" value="0" aria-describedby="kinderVor2008-fehler">
+            <p class="fehler" id="kinderVor2008-fehler" aria-live="polite"></p>
+          </div>
+
+          <details class="details">
+            <summary><span class="nr">02</span> Details <small>Status, Kirche, Bundesland, Krankenversicherung</small></summary>
+
+            <fieldset class="feld segmente">
+              <legend>Berufsstatus</legend>
+              <div class="segment-gruppe">
+                <label><input type="radio" name="status" value="angestellt" checked><span>angestellt</span></label>
+                <label><input type="radio" name="status" value="selbststaendig"><span>selbstständig</span></label>
+                <label><input type="radio" name="status" value="verbeamtet"><span>verbeamtet</span></label>
+              </div>
+            </fieldset>
+
+            <div class="feld-paar">
+              <div class="feld">
+                <label for="land">Bundesland</label>
+                <select id="land"></select>
+              </div>
+              <div class="feld schalter-feld unten-buendig">
+                <label class="schalter" for="kirche">
+                  <input id="kirche" type="checkbox" role="switch">
+                  <span class="schiene" aria-hidden="true"></span>
+                  <span>Kirchensteuerpflichtig</span>
+                </label>
+              </div>
+            </div>
+
+            <fieldset class="feld segmente">
+              <legend>Krankenversicherung</legend>
+              <div class="segment-gruppe">
+                <label><input type="radio" name="kv" value="gesetzlich" checked><span>gesetzlich</span></label>
+                <label><input type="radio" name="kv" value="privat"><span>privat</span></label>
+              </div>
+            </fieldset>
+
+            <div class="feld" id="kvSatz-feld">
+              <label for="kvSatz">KV-Beitragssatz inkl. Zusatzbeitrag</label>
+              <div class="eingabe-einheit">
+                <input id="kvSatz" type="number" inputmode="decimal" min="14" max="22" step="0.1" value="17.5" aria-describedby="kvSatz-hilfe kvSatz-fehler">
+                <span aria-hidden="true">%</span>
+              </div>
+              <p class="hilfe" id="kvSatz-hilfe">14,6 % allgemeiner Satz plus Zusatzbeitrag deiner Kasse (Ø 2,9 %).</p>
+              <p class="fehler" id="kvSatz-fehler" aria-live="polite"></p>
+            </div>
+
+            <div class="feld" id="pkv-feld" hidden>
+              <label for="pkvBeitrag">PKV-Monatsbeitrag inkl. Pflege</label>
+              <div class="eingabe-einheit">
+                <input id="pkvBeitrag" type="number" inputmode="decimal" min="0" max="3000" step="10" value="500" aria-describedby="pkvBeitrag-fehler">
+                <span aria-hidden="true">€</span>
+              </div>
+              <p class="fehler" id="pkvBeitrag-fehler" aria-live="polite"></p>
+            </div>
+          </details>
+        </form>
+
+        <figure class="kurve">
+          <h2 class="abschnitt"><span class="nr">03</span> Welcher Beitrag lohnt am meisten?</h2>
+          <svg id="kurve" viewBox="0 0 360 200" role="img" aria-labelledby="kurve-text">
+            <defs>
+              <linearGradient id="kurve-fuellung" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="currentColor" stop-opacity="0.22"/>
+                <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g id="kurve-achsen"></g>
+            <path id="kurve-flaeche" class="kurve-flaeche" fill="url(#kurve-fuellung)"/>
+            <path id="kurve-linie" class="kurve-linie"/>
+            <g id="kurve-punkt" class="kurve-punkt">
+              <line y1="0" y2="0"/>
+              <circle r="5"/>
+            </g>
+          </svg>
+          <figcaption id="kurve-text">Förderquote nach Monatsbeitrag. Bis 30 € gibt es 50 % Grundzulage, bis 150 € noch 25 %, darüber nur noch den Steuervorteil.</figcaption>
+        </figure>
+      </div>
+
+      <section class="ergebnis" id="ergebnis" aria-labelledby="h-ergebnis" tabindex="-1">
+        <div class="ergebnis-karte">
+          <h2 class="eyebrow" id="h-ergebnis">Förderquote Altersvorsorgedepot</h2>
+          <p class="hero" id="hero"><span id="quote">0</span><span class="prozent">%</span></p>
+          <p class="satz" id="satz"></p>
+
+          <div class="muenz-block">
+            <div class="muenzen" id="muenzen" role="img"></div>
+            <ul class="legende">
+              <li data-seg="eigen"><i></i><span>Dein Eigenanteil</span><b id="l-eigen"></b></li>
+              <li data-seg="grund"><i></i><span>Grundzulage</span><b id="l-grund"></b></li>
+              <li data-seg="kind"><i></i><span>Kinderzulage</span><b id="l-kind"></b></li>
+              <li data-seg="steuer"><i></i><span>Steuervorteil</span><b id="l-steuer"></b></li>
+            </ul>
+          </div>
+
+          <dl class="kennzahlen">
+            <div class="gross"><dt>Förderung gesamt</dt><dd id="k-foerderung"></dd></div>
+            <div><dt>Netto-Eigenanteil</dt><dd id="k-netto"></dd></div>
+            <div><dt>Landet im Depot</dt><dd id="k-gesamt"></dd></div>
+            <div><dt>Zu versteuerndes Einkommen</dt><dd id="k-zve"></dd></div>
+            <div><dt>Grenzsteuersatz</dt><dd id="k-grenz"></dd></div>
+          </dl>
+          <p class="einheit-hinweis">Alle Beträge pro Jahr.</p>
+
+          <a class="vergleich-kurz" id="vergleich-kurz" href="#vergleich" hidden></a>
+
+          <aside class="hinweise" id="hinweise" aria-label="Hinweise" hidden>
+            <ul id="hinweis-liste"></ul>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <section class="vergleich" id="vergleich" aria-labelledby="h-vergleich" hidden>
+      <h2 class="abschnitt" id="h-vergleich"><span class="nr">04</span> Altersvorsorgedepot oder Riester?</h2>
+      <p class="urteil" id="urteil"></p>
+      <div class="vergleich-spalten">
+        <article class="produkt" id="p-avd"></article>
+        <article class="produkt" id="p-riester"></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="fuss">
+    <p><strong>Keine Steuer- oder Anlageberatung.</strong> Näherungsrechnung für Alleinstehende (Einzelveranlagung), ohne Kapitalprojektion. Parameter Stand 2026 (Einkommensteuertarif, Beitragsbemessungsgrenzen, Sozialversicherung); Förderregeln nach dem Altersvorsorgereformgesetz, gültig ab 01.01.2027. Kinderfreibeträge bei Soli und Kirchensteuer bleiben unberücksichtigt.</p>
+    <p>Alles wird nur in deinem Browser berechnet. Keine Cookies, kein Tracking.</p>
+  </footer>
+
+  <div class="leiste" id="leiste" aria-hidden="true">
+    <span class="leiste-quote"><b id="leiste-quote">0 %</b> Förderquote</span>
+    <span class="leiste-betrag"><b id="leiste-betrag">0 €</b> Förderung/Jahr</span>
+  </div>
+
+  <p class="sr-only" id="live" aria-live="polite"></p>
+</body>
+</html>
